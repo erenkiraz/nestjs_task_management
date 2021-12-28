@@ -7,9 +7,14 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/auth/get-user.decorator';
+import { User } from 'src/auth/user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTaskFilterDto } from './dto/get-tasks-fiter-dto';
 import { Task } from './dto/task.entity';
@@ -22,8 +27,9 @@ export class TasksController {
 
   @Get()
   @UseGuards(AuthGuard())
-  getTasks(@Query() filterDto: GetTaskFilterDto): Promise<Task[]> {
-    return this.tasksService.getTasks(filterDto);
+  getTasks(@Req() req, @Query() filterDto: GetTaskFilterDto): Promise<Task[]> {
+    console.log(req.user);
+    return this.tasksService.getTasks(filterDto, req.user);
   }
 
   // http://localhost:300/tasks/wewewe
@@ -32,17 +38,15 @@ export class TasksController {
     return this.tasksService.getTaskById(id);
   }
 
-  // // http://localhost:300/tasks/wewewe
-  // @Get('/:id')
-  // getTAskByID(@Param('id') id: string): Task {
-  //   return this.tasksService.getTaskById(id);
-  // }
-
   @Post()
-  createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
-    return this.tasksService.createTask(createTaskDto);
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  createTask(@Req() req, @Body() createTaskDto: CreateTaskDto): Promise<Task> {
+    // console.log(req);
+    console.log('eren3434');
+    console.log(req.user);
+    return this.tasksService.createTask(createTaskDto, req.user);
   }
-
   @Delete('/:id')
   deleteTask(@Param('id') id: string): Promise<void> {
     return this.tasksService.deleteTask(id);
@@ -56,4 +60,13 @@ export class TasksController {
     const { status } = updateTaskStatusDTO;
     return this.tasksService.updateTaskStatus(id, status);
   }
+
+  // @Post()
+  // @UseGuards(AuthGuard())
+  // createTask(@Req() req, @Body() createTaskDto) {
+  //   // console.log(req);
+  //   console.log('eren111122334443333332');
+  //   console.log(req.user);
+  //   return this.tasksService.createTask(createTaskDto, req.user);
+  // }
 }
